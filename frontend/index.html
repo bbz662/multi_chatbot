@@ -1,0 +1,78 @@
+<!-- index.html -->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ジピコとパノン</title>
+    <style>
+        body {
+            background-color: #282c34;
+            color: #61dafb;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>ジピコとパノン</h1>
+    <form id="form" action="">
+        <input id="message" type="text">
+        <button type="submit">Send</button>
+    </form>
+    <div id="status"></div>
+    <div id="history"></div>
+
+    <script>
+        const heavySocket = new WebSocket("ws://localhost:8000/ws/heavy");
+        const lightSocket = new WebSocket("ws://localhost:8000/ws/light");
+        const yourPrefix = "[あなた]: ";
+        const yourMsgColor = "#61dafb";
+        const heavyMsgColor = "#fbd361";
+        const lightMsgColor = "#61fb97";
+
+        let isHeavyProcessing = false;
+
+        function appendHistoryChild(text, color) {
+            let historyDiv = document.createElement("div");
+            historyDiv.innerText = text;
+            historyDiv.style.color = color;
+            document.getElementById("history").appendChild(historyDiv);
+        }
+
+        document.getElementById("form").addEventListener("submit", function (event) {
+            event.preventDefault();
+            let message = document.getElementById("message").value;
+            document.getElementById("status").innerText = yourPrefix + message;
+            document.getElementById("status").innerText = "";
+            appendHistoryChild(yourPrefix + message, yourMsgColor);
+            if (!isHeavyProcessing) {
+                isHeavyProcessing = true;
+                heavySocket.send(message);
+            } else {
+                lightSocket.send(message);
+            }
+        });
+
+        heavySocket.onmessage = function (event) {
+            appendHistoryChild(event.data, heavyMsgColor)
+            if (event.data != "[ジピコ]: 時間がかかりそうだからしばらくパノンと雑談しててね！") {
+                isHeavyProcessing = false;
+            }
+        };
+
+        lightSocket.onmessage = function (event) {
+            console.log("sebas")
+            appendHistoryChild(event.data, lightMsgColor)
+        };
+    </script>
+</body>
+
+</html>
