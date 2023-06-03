@@ -1,0 +1,8 @@
+version: '3'
+services:
+  fastapi:
+    build: .
+    environment:
+      - OPEN_AI_API_KEY=${OPEN_AI_API_KEY}
+    ports:
+      - "8000:8000"
